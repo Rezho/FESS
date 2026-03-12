@@ -1,0 +1,21 @@
+
+Le cert.pfx original était chiffré avec un algorithme PKCS12 incompatible avec Java. Il a fallu le ré-exporter depuis le store Windows :
+# Import avec flag exportable
+Import-PfxCertificate -FilePath "C:\Users\adm.contoso\Desktop\cert.pfx" `
+    -CertStoreLocation "Cert:\LocalMachine\My" -Password $pwd -Exportable
+# Ré-export avec algorithme compatible Java
+Export-PfxCertificate -Cert $cert -FilePath "C:\fess-15.4.0\app\WEB-INF\classes\cert_java.pfx" `
+    -Password $pwd -CryptoAlgorithmOption TripleDES_SHA1
+
+2. Configuration Tomcat (tomcat_config.properties)
+Fess utilise FessBoot (Tomcat embarqué), pas Spring Boot. Les propriétés SSL se mettent dans C:\fess-15.4.0\lib\classes\tomcat_config.properties avec le préfixe tomcat.* :
+tomcat.URIEncoding = UTF-8
+tomcat.useBodyEncodingForURI = true
+tomcat.SSLEnabled=true
+tomcat.scheme=https
+tomcat.secure=true
+tomcat.certificateKeystoreFile=C:/fess-15.4.0/app/WEB-INF/classes/cert_java.pfx
+tomcat.certificateKeystorePassword=password
+
+dans C:\fess-15.4.0\bin\fess.in.bat :
+set FESS_JAVA_OPTS=%FESS_JAVA_OPTS% -Dfess.port=443
